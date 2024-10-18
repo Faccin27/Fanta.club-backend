@@ -2,7 +2,6 @@ const UserDAO = require("../models/DAO/userDAO");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
 
-
 class userController {
   async register(req, reply) {
     try {
@@ -29,7 +28,7 @@ class userController {
 
   async login(req, reply) {
     console.log("Requisição recebida:", req.body);
-    const { email, pass } = req.body;
+    const { email, password } = req.body;  // Alterado de 'pass' para 'password'
   
     try {
       // Verifica se o usuário existe
@@ -45,8 +44,8 @@ class userController {
         console.error("Hash de senha não encontrado para o usuário");
         return reply.status(500).send({ message: 'Internal server error' });
       }
-
-      const isPasswordValid = await bcrypt.compare(pass, user.password);
+  
+      const isPasswordValid = await bcrypt.compare(password, user.password);  // Alterado de 'pass' para 'password'
       console.log("Senha válida:", isPasswordValid);
   
       if (!isPasswordValid) {
@@ -102,8 +101,6 @@ class userController {
     const usuarioLogado = await UserDAO.getUserById(req.user.id);
     reply.send(usuarioLogado);
   }
-
-
 
   async getAllUsers(req, reply) {
     try {
