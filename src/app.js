@@ -3,6 +3,8 @@ const cors = require('@fastify/cors');
 const router = require('./routes/router');
 const jwt = require('@fastify/jwt');
 const cookie = require('@fastify/cookie');
+require('dotenv').config();
+
 
 fastify.register(cookie);
 
@@ -15,7 +17,7 @@ fastify.register(cors, {
 
 // Configuração do JWT
 fastify.register(jwt, {
-  secret: process.env.JWT_SECRET || 'sua_chave_secreta_aqui',
+  secret: process.env.JWT_SECRET || 'Secret_key',
   cookie: {
     cookieName: 'token',
     signed: false

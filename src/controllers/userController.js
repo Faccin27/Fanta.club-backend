@@ -62,19 +62,23 @@ class userController {
     }
   }
   
+  
   async getLoggedUser(req, reply) {
     console.log("get looged user")
     try {
       const authHeader = req.headers.authorization;
       console.log(authHeader)
       const token = authHeader.split(' ')[1];
+      console.log(token)
 
       if (!token) {
         return reply.status(401).send({ message: 'No token provided' });
       }
+      console.log("executando decode.");
+      console.log(process.env.JWT_SECRET)
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  
+
       const user = await UserDAO.getUserById(decoded.id);
   
       if (!user) {
