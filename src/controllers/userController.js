@@ -1,30 +1,9 @@
 const UserDAO = require("../models/DAO/userDAO");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
+const userDAO = require("../models/DAO/userDAO");
 
 class userController {
-  async register(req, reply) {
-    try {
-      const dataWithCreatedAt = {
-        ...req.body,
-        createdAt: new Date().toISOString(),
-      };
-
-      // Hash da senha
-      const hashedPassword = await bcrypt.hash(dataWithCreatedAt.pass, 10);
-      dataWithCreatedAt.pass = hashedPassword;
-
-      const newUser = await UserDAO.createUser(dataWithCreatedAt);
-      reply.status(201).send(newUser);
-    } catch (err) {
-      if (err.message === 'Email already exists') {
-        reply.status(409).send({ error: 'Email already exists' });
-      } else {
-        console.error(err);
-        reply.status(500).send({ error: "Internal Server Error" });
-      }
-    }
-  }
 
   async login(req, reply) {
     console.log("Requisição recebida:", req.body);
@@ -62,6 +41,30 @@ class userController {
     }
   }
   
+
+  async getUserOrder(req, reply){
+    console.log("Get user Order init")
+    try {
+      const id = Number(req.params.id);
+      console.log(id)
+
+      const order = await userDAO.getUserOrder(id)
+
+      if(!order){
+        return reply.status(404).send({ message: "Usuario não tem nenhuma compra" })
+      }
+
+      if(!id)
+      {
+        console.log('usuario não logado')
+      }
+      
+      reply.send(order)
+    }  catch(err){
+       console.log(err)
+       reply.status(500).send({ error: "Internal Server Error" });
+    }
+  }
   
   async getLoggedUser(req, reply) {
     console.log("get looged user")
@@ -180,5 +183,7 @@ class userController {
     }
   }
 }
+
+
 
 module.exports = new userController();

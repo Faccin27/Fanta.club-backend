@@ -8,25 +8,66 @@ generator client {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  name          String
-  password      String
-  email         String   @unique
-  photo         String?
+  id             Int       @id @default(autoincrement())
+  name           String
+  password       String
+  email          String    @unique
+  photo          String?
   registeredDate DateTime
-  expiryDate    DateTime
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  role          Role                                     
-  
+  expiryDate     DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  role           Role      @default(User)
+
+  purchases      Purchase[]
+  products       Product[] @relation("UserProducts") // Novo relacionamento com produtos
+
   @@map("users")
 }
 
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        ProductName
+  price       Float
+  expiration  Expiration
+  createdAt   DateTime  @default(now())
+  purchases   Purchase[]
+  user        User      @relation(fields: [userId], references: [id], name: "UserProducts") 
+  userId      Int       
+
+  @@map("products")
+}
+
+model Purchase {
+  id              Int       @id @default(autoincrement())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          Int
+  product         Product   @relation(fields: [productId], references: [id])
+  productId       Int
+  purchaseDate    DateTime  @default(now())
+  paymentMethod   String
+  receiptId       String
+
+  @@map("purchases")
+}
+
 enum Role {
-  User     
+  User
   Premium
   Moderator
-  FANTA    
+  FANTA
+}
+
+enum Expiration {
+  DAY
+  WEEK
+  MONTH
+  LIFETIME
+}
+
+enum ProductName {
+  FANTA_PRO
+  FANTA_LIGHT
+  FANTA_UNBAN
 }

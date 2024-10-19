@@ -1,4 +1,5 @@
 const prisma = require('../user');
+const order = require('../order')
 
 class UserDAO {
   async getAllUsers() {
@@ -11,6 +12,10 @@ class UserDAO {
 
   async createUser(data) {
     return await prisma.create({ data });
+  }
+
+  async getUserOrder(id){
+    return await order.findMany({where: {userId: parseInt(id) }})
   }
 
   async getUserByEmail(email) {
