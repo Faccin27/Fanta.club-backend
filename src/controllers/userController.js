@@ -42,27 +42,54 @@ class userController {
   }
   
 
-  async getUserOrder(req, reply){
+  async getUserOrder(req, reply) {
     console.log("Get user Order init")
     try {
       const id = Number(req.params.id);
       console.log(id)
-
+  
       const order = await userDAO.getUserOrder(id)
-
-      if(!order){
+  
+      if (!order) {
         return reply.status(404).send({ message: "Usuario não tem nenhuma compra" })
       }
-
-      if(!id)
-      {
+  
+      if (!id) {
         console.log('usuario não logado')
       }
+  
+      const orderWithExpiration = order.map(item => {
+        let expirationDate = new Date(item.createdAt);
+        
+        switch (item.expiration) {
+          case 'DAY':
+            expirationDate.setDate(expirationDate.getDate() + 1);
+            break;
+          case 'WEEK':
+            expirationDate.setDate(expirationDate.getDate() + 7);
+            break;
+          case 'MONTH':
+            expirationDate.setMonth(expirationDate.getMonth() + 1);
+            break;
+          case 'LIFETIME':
+            expirationDate.setFullYear(expirationDate = '2038');
+            break;
+          default:
+            console.log(`Tipo de expiração não reconhecido: ${item.expiration}`);
+        }
+  
+        return {
+          ...item,
+          expirationDate: item.expiration === 'LIFETIME' ? 'Nunca expira' : expirationDate.toISOString()
+        };
+      });
+  
+      console.log(orderWithExpiration)
       
-      reply.send(order)
-    }  catch(err){
-       console.log(err)
-       reply.status(500).send({ error: "Internal Server Error" });
+      reply.send(orderWithExpiration)
+    } catch(err) {
+      console.log(err)
+      reply.status(500).send({ error: "Internal Server Error" });
     }
   }
   
