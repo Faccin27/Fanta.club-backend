@@ -181,22 +181,39 @@ class userController {
   }
 
   async updateUser(req, reply) {
+    console.log("recebido")
     try {
-      const userId = Number(req.params.id);
-      const userData = req.body;
+        const userId = Number(req.params.id);
+        const { currentPassword, newPassword } = req.body;
+        
+        // Primeiro, buscar o usuário para verificar a senha atual
+        const currentUser = await UserDAO.getUserById(userId);
+        if (!currentUser) {
+            return reply.status(404).send({ message: "User not found" });
+        }
 
-      if (userData.pass) {
-        userData.pass = await bcrypt.hash(userData.pass, 10);
-      }
+        // Verificar se a senha atual está correta
+        const isPasswordValid = await bcrypt.compare(currentPassword, currentUser.password); // Changed from currentUser.pass
+        if (!isPasswordValid) {
+            return reply.status(401).send({ message: "Current password is incorrect" });
+        }
 
-      const updatedUser = await UserDAO.updateUser(userId, userData);
-      if (updatedUser) {
+        // Preparar os dados para atualização
+        const userData = {
+            ...req.body,
+            password: await bcrypt.hash(newPassword, 10) // Changed from pass to password
+        };
+
+        // Remover as propriedades que não devem ser salvas no banco
+        delete userData.currentPassword;
+        delete userData.newPassword;
+
+        const updatedUser = await UserDAO.updateUser(userId, userData);
         reply.send(updatedUser);
-      } else {
-        reply.status(404).send({ message: "User not found" });
-      }
+        
     } catch (err) {
-      reply.status(500).send({ error: "Internal Server Error" });
+        console.error(err);
+        reply.status(500).send({ error: "Internal Server Error" });
     }
   }
 
