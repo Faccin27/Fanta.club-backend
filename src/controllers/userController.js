@@ -161,24 +161,34 @@ class userController {
     }
   }
 
-  async createUser(req, reply) {
-    try {
-      const { password, ...userData } = req.body;
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      const newUser = await UserDAO.createUser({ ...userData, password: hashedPassword });
-  
-      reply.status(201).send(newUser);
-    } catch (err) {
-      if (err.message === 'Email already exists') {
-        reply.status(409).send({ error: 'Email already exists' });
-      } else {
-        console.error(err);
-        reply.status(500).send({ error: "Internal Server Error" });
-      }
+async createUser(req, reply) {
+  try {
+    const { email, name, password, ...userData } = req.body;
+
+    // Verifica se o email já está em uso
+    const existingUserByEmail = await UserDAO.getUserByEmail(email);
+    if (existingUserByEmail) {
+      return reply.status(409).send({ error: 'Email already in use' });
     }
+
+    // Verifica se o nome de usuário já está em uso
+    const existingUserByUsername = await UserDAO.getUserByUsername(name);
+    if (existingUserByUsername) {
+      return reply.status(409).send({ error: 'Username already in use' });
+    }
+
+    // Cria o hash da senha
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Cria o novo usuário
+    const newUser = await UserDAO.createUser({ ...userData, email, name, password: hashedPassword });
+
+    reply.status(201).send(newUser);
+  } catch (err) {
+    console.error(err);
+    reply.status(500).send({ error: 'Internal Server Error' });
   }
+}
 
   async updateUser(req, reply) {
     console.log("recebido")

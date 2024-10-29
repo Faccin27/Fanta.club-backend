@@ -22,6 +22,10 @@ class UserDAO {
     return await prisma.findFirst({ where: { email: email } })
   }
 
+  async getUserByUsername(name) {
+    return await prisma.findFirst({ where: { name: name } })
+  }
+
   async updateUser(id, data) {
     return await prisma.update({ where: { id: parseInt(id) }, data });
   }
