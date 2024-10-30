@@ -22,6 +22,8 @@ model User {
 
   purchases      Purchase[]
   products       Product[] @relation("UserProducts") // Novo relacionamento com produtos
+  coupons        Coupon[]  @relation("UserCoupons") // Relação para os cupons criados
+
 
   @@map("users")
 }
@@ -51,6 +53,20 @@ model Purchase {
 
   @@map("purchases")
 }
+
+model Coupon {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  discount      Float
+  createdAt     DateTime  @default(now())
+  expiryDate    DateTime
+  createdBy     User      @relation("UserCoupons", fields: [createdById], references: [id])
+  createdById   Int
+
+  @@map("coupons")
+}
+
+
 
 enum Role {
   User
