@@ -27,19 +27,29 @@ class couponController {
     }
   }
 
-async createCoupon(req, reply) {
-  try {
-    console.log(req.body)
-    const { name, discount, createdAt, expiryDate, createdById } = req.body;
-
-    const newCoupon = await CouponDAO.createCoupon({ name, discount, createdAt, expiryDate, createdById });
-
-    reply.status(201).send(newCoupon);
-  } catch (err) {
-    console.error(err);
-    reply.status(500).send({ error: 'Internal Server Error' });
+  async createCoupon(req, reply) {
+    console.log("Criando")
+    try {
+      console.log(req.body)
+      const { name, discount, createdAt, expiryDate, createdById } = req.body;
+  
+      // Converter a data para o formato ISO-8601 para não ter erro 
+      const formattedExpiryDate = new Date(expiryDate).toISOString();
+  
+      const newCoupon = await CouponDAO.createCoupon({ 
+        name, 
+        discount, 
+        createdAt, 
+        expiryDate: formattedExpiryDate,
+        createdById 
+      });
+  
+      reply.status(201).send(newCoupon);
+    } catch (err) {
+      console.error(err);
+      reply.status(500).send({ error: 'Internal Server Error' });
+    }
   }
-}
 
 
   async deleteCoupon(req, reply) {
