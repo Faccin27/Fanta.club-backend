@@ -9,6 +9,10 @@ class CouponDAO {
     return await prisma.findUnique({ where: { id: parseInt(id) } });
   }
 
+  async getCouponByName(couponName){
+    return await prisma.findUnique({where: {name: couponName}})
+  }
+  
   async createCoupon(data) {
     return await prisma.create({ data });
   }

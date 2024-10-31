@@ -27,6 +27,22 @@ class couponController {
     }
   }
 
+  async getCouponByName(req, reply) {
+    try {
+      const couponName = req.params.name; 
+      const coupon = await CouponDAO.getCouponByName(couponName);
+  
+      if (coupon) {
+        reply.send(coupon);
+      } else {
+        reply.status(404).send({ message: "Coupon Not found" });
+      }
+    } catch (error) {
+      console.error(error);
+      reply.status(500).send({ error: "Internal Server Error" });
+    }
+  }
+
   async createCoupon(req, reply) {
     console.log("Criando")
     try {
