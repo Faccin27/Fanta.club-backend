@@ -227,6 +227,39 @@ async createUser(req, reply) {
     }
   }
 
+  async toggleUserStatus(req, reply) {
+    try {
+      const userId = Number(req.params.id);
+      
+      // Verifica se o ID é um numero valido
+      if (!userId || isNaN(userId)) {
+        return reply.status(400).send({ message: 'Invalid user ID' });
+      }
+  
+      // Busca o usuário atual para verificar seu status
+      const currentUser = await UserDAO.getUserById(userId);
+      
+      if (!currentUser) {
+        return reply.status(404).send({ message: 'User not found' });
+      }
+  
+      // Define o novo status (inverte o valor atual)
+      const newStatus = !currentUser.isActive;
+  
+      // Atualiza o status do usuário
+      const updatedUser = await UserDAO.updateUser(userId, { isActive: newStatus });
+  
+      reply.send({
+        message: `User status successfully changed to ${newStatus ? 'active' : 'inactive'}`,
+        user: updatedUser
+      });
+  
+    } catch (err) {
+      console.error('Error toggling user status:', err);
+      reply.status(500).send({ error: 'Internal Server Error' });
+    }
+  }
+
   async deleteUser(req, reply) {
     try {
       const userId = Number(req.params.id);
