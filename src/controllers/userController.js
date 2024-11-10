@@ -48,7 +48,7 @@ class userController {
       const id = Number(req.params.id);
       console.log(id)
   
-      const order = await userDAO.getUserOrder(id)
+      const order = await UserDAO.getUserOrder(id)
   
       if (!order) {
         return reply.status(404).send({ message: "Usuario não tem nenhuma compra" })
@@ -208,7 +208,7 @@ async createUser(req, reply) {
         </div>
       `
     };
-    
+      
 
     try {
       await axios.post('http://localhost:3535/send/email', emailBody);
@@ -223,76 +223,147 @@ async createUser(req, reply) {
   }
 }
 
-  async verifyUser(req, reply){
-    try {
-      const userId = Number(req.params.id)
+async verifyUser(req, reply) {
+  try {
+      const userId = Number(req.params.id);
 
-      if(!userId || isNaN(userId)){
-        return reply.status(400).send({message: "Invalid user id"})
+      if (!userId || isNaN(userId)) {
+          return reply.status(400).send({ message: "Invalid user id" });
       }
 
       const user = await UserDAO.getUserById(userId);
-      console.log(user)
-      if(!user){
-        return reply.status(404).send({message: 'User not found'})
+      if (!user) {
+          return reply.status(404).send({ message: 'User not found' });
       }
 
-      if(user.verified){
-        return reply.status(400).send({message: "Already verified user"})
+      if (user.verified) {
+          return reply.status(400).send({ message: "Already verified user" });
       }
 
-      const updateUser = await UserDAO.updateUser(userId, {verified: true})
-      console.log(updateUser)
-      if(user.verified == true){
-        reply.send({
-          message: "User verified sucessfully",
-          user: updateUser
-        })
-      }
-
-    } catch (error) {
-      console.error("error verifying user", error)
-      reply.status(500).send({error: "internal server error"})
+      const updateUser = await UserDAO.updateUser(userId, { verified: true });
       
-    }
+      if (updateUser.verified === true) {
+          // Prepara e envia o email de verificação bem-sucedida
+          const emailBody = {
+              to: user.email,
+              subject: "Welcome to Fanta.club - Account Verified!",
+              text: `Congratulations! Your Fanta.club account has been successfully verified. You now have full access to all features.`,
+              html: `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f08c00; border-radius: 5px;">
+                      <div style="background-color: #f08c00; color: #fff; padding: 20px; text-align: center; font-size: 24px; font-weight: bold;">
+                          Account Verified Successfully!
+                      </div>
+                      <div style="padding: 20px; font-size: 16px; color: #333;">
+                          <p>Hello!</p>
+                          <p>Great news! Your Fanta.club account has been successfully verified. 🎉</p>
+                          <p>You now have full access to all features of our platform, including:</p>
+                          <ul>
+                              <li>Complete access to all platform features</li>
+                              <li>Ability to make purchases</li>
+                              <li>Access to exclusive content</li>
+                          </ul>
+                          <p style="text-align: center; margin: 20px 0;">
+                              <a href="http://localhost:3000" 
+                                 style="color: #fff; background-color: #f08c00; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                  Start Exploring
+                              </a>
+                          </p>
+                          <p>Thank you for joining our community!</p>
+                      </div>
+                      <div style="background-color: #f08c00; color: #fff; padding: 10px; text-align: center; font-size: 14px;">
+                          &copy; ${new Date().getFullYear()} Fanta.club. All rights reserved.
+                      </div>
+                  </div>
+              `
+          };
+
+          try {
+              await axios.post('http://localhost:3535/send/email', emailBody);
+          } catch (emailError) {
+              console.error("Error sending verification success email:", emailError);
+          }
+
+          reply.send({
+              message: "User verified successfully",
+              user: updateUser
+          });
+      }
+
+  } catch (error) {
+      console.error("error verifying user", error);
+      reply.status(500).send({ error: "internal server error" });
   }
+}
 
-  async updateUser(req, reply) {
-    console.log("recebido")
-    try {
-        const userId = Number(req.params.id);
-        const { currentPassword, newPassword } = req.body;
-        
-        // Primeiro, buscar o usuário para verificar a senha atual
-        const currentUser = await UserDAO.getUserById(userId);
-        if (!currentUser) {
-            return reply.status(404).send({ message: "User not found" });
-        }
+async updateUser(req, reply) {
+  console.log("recebido")
+  try {
+      const userId = Number(req.params.id);
+      const { currentPassword, newPassword } = req.body;
+      
+      const currentUser = await UserDAO.getUserById(userId);
+      if (!currentUser) {
+          return reply.status(404).send({ message: "User not found" });
+      }
 
-        // Verificar se a senha atual está correta
-        const isPasswordValid = await bcrypt.compare(currentPassword, currentUser.password); // Changed from currentUser.pass
-        if (!isPasswordValid) {
-            return reply.status(401).send({ message: "Current password is incorrect" });
-        }
+      const isPasswordValid = await bcrypt.compare(currentPassword, currentUser.password);
+      if (!isPasswordValid) {
+          return reply.status(401).send({ message: "Current password is incorrect" });
+      }
 
-        // Preparar os dados para atualização
-        const userData = {
-            ...req.body,
-            password: await bcrypt.hash(newPassword, 10) // Changed from pass to password
-        };
+      const userData = {
+          ...req.body,
+          password: await bcrypt.hash(newPassword, 10)
+      };
 
-        // Remover as propriedades que não devem ser salvas no banco
-        delete userData.currentPassword;
-        delete userData.newPassword;
+      delete userData.currentPassword;
+      delete userData.newPassword;
 
-        const updatedUser = await UserDAO.updateUser(userId, userData);
-        reply.send(updatedUser);
-        
-    } catch (err) {
-        console.error(err);
-        reply.status(500).send({ error: "Internal Server Error" });
-    }
+      const updatedUser = await UserDAO.updateUser(userId, userData);
+
+      // Prepara e envia o email de notificação
+      const emailBody = {
+          to: currentUser.email,
+          subject: "Fanta.club Security Alert",
+          text: `Your Fanta.club account password has been changed. If you didn't make this change, please contact us immediately.`,
+          html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f08c00; border-radius: 5px;">
+                  <div style="background-color: #f08c00; color: #fff; padding: 20px; text-align: center; font-size: 24px; font-weight: bold;">
+                      Fanta.club Security Alert
+                  </div>
+                  <div style="padding: 20px; font-size: 16px; color: #333;">
+                      <p>Hello!</p>
+                      <p>This email confirms that your Fanta.club account password has been successfully changed.</p>
+                      <p style="background-color: #fff3e0; padding: 15px; border-radius: 5px; border: 1px solid #ffe0b2;">
+                          <strong>Security Notice:</strong> If you did not make this change, please contact our support team immediately.
+                      </p>
+                      <p>For your security, we recommend:</p>
+                      <ul>
+                          <li>Regularly updating your password</li>
+                          <li>Not sharing your login credentials</li>
+                          <li>Using a unique password for your Fanta.club account</li>
+                      </ul>
+                  </div>
+                  <div style="background-color: #f08c00; color: #fff; padding: 10px; text-align: center; font-size: 14px;">
+                      &copy; ${new Date().getFullYear()} Fanta.club. All rights reserved.
+                  </div>
+              </div>
+          `
+      };
+
+      try {
+          await axios.post('http://localhost:3535/send/email', emailBody);
+      } catch (emailError) {
+          console.error("Error sending credential change email:", emailError);
+      }
+
+      reply.send(updatedUser);
+      
+  } catch (err) {
+      console.error(err);
+      reply.status(500).send({ error: "Internal Server Error" });
   }
+}
 
   async toggleUserStatus(req, reply) {
     try {
