@@ -183,7 +183,7 @@ async createUser(req, reply) {
     // Cria o novo usuário
     const newUser = await UserDAO.createUser({ ...userData, email, name, password: hashedPassword, verified: false });
 
-    const verificationLink = `http://localhost:3535/users/verify/${newUser.id}`
+    const verificationLink = `http://localhost:3000/verify/${newUser.id}`
 
     const emailBody ={
       to: email,
