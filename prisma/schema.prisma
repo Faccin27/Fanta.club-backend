@@ -16,6 +16,7 @@ model User {
   registeredDate DateTime
   expiryDate     DateTime?
   isActive       Boolean   @default(true)
+  verified       Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   role           Role      @default(User)

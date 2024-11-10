@@ -5,6 +5,7 @@ async function userRoutes(fastify, options) {
   fastify.get('/:id', UserController.getUserById);
   fastify.get('/orders/:id', UserController.getUserOrder)
   fastify.get('/me', UserController.getLoggedUser); 
+  fastify.post('/verify/:id', UserController.verifyUser)
   fastify.post('/', UserController.createUser);
   fastify.post('/login', UserController.login);
   fastify.put('/:id', UserController.updateUser);

@@ -1,7 +1,7 @@
 const UserDAO = require("../models/DAO/userDAO");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
-const userDAO = require("../models/DAO/userDAO");
+const axios = require('axios')
 
 class userController {
 
@@ -181,7 +181,21 @@ async createUser(req, reply) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Cria o novo usuário
-    const newUser = await UserDAO.createUser({ ...userData, email, name, password: hashedPassword });
+    const newUser = await UserDAO.createUser({ ...userData, email, name, password: hashedPassword, verified: false });
+
+    const verificationLink = `http://localhost:3535/users/verify/${newUser.id}`
+
+    const emailBody ={
+      to: email,
+      subject: "Fanta.club account confirmation ",
+      text: `Welcome to fanta.club!\n\nPlease Clic on the link below to verify your account:\n${verificationLink}\n\nIf you gay dont click`
+    };
+
+    try {
+      await axios.post('http://localhost:3535/send/email', emailBody);
+    } catch (emailError){
+      console.error("error sending verificatuon email", emailError)
+    }
 
     reply.status(201).send(newUser);
   } catch (err) {
@@ -189,6 +203,40 @@ async createUser(req, reply) {
     reply.status(500).send({ error: 'Internal Server Error' });
   }
 }
+
+  async verifyUser(req, reply){
+    try {
+      const userId = Number(req.params.id)
+
+      if(!userId || isNaN(userId)){
+        return reply.status(400).send({message: "Invalid user id"})
+      }
+
+      const user = await UserDAO.getUserById(userId);
+      console.log(user)
+      if(!user){
+        return reply.status(404).send({message: 'User not found'})
+      }
+
+      if(user.verified){
+        return reply.status(400).send({message: "Already verified user"})
+      }
+
+      const updateUser = await UserDAO.updateUser(userId, {verified: true})
+      console.log(updateUser)
+      if(user.verified == true){
+        reply.send({
+          message: "User verified sucessfully",
+          user: updateUser
+        })
+      }
+
+    } catch (error) {
+      console.error("error verifying user", error)
+      reply.status(500).send({error: "internal server error"})
+      
+    }
+  }
 
   async updateUser(req, reply) {
     console.log("recebido")
