@@ -185,11 +185,30 @@ async createUser(req, reply) {
 
     const verificationLink = `http://localhost:3000/verify/${newUser.id}`
 
-    const emailBody ={
+    const emailBody = {
       to: email,
-      subject: "Fanta.club account confirmation ",
-      text: `Welcome to fanta.club!\n\nPlease Clic on the link below to verify your account:\n${verificationLink}\n\nIf you gay dont click`
+      subject: "Fanta.club Account Confirmation",
+      text: `Welcome to Fanta.club!\n\nPlease click on the link below to verify your account:\n${verificationLink}\n\nIf you did not sign up, please ignore this message.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f08c00; border-radius: 5px;">
+          <div style="background-color: #f08c00; color: #fff; padding: 20px; text-align: center; font-size: 24px; font-weight: bold;">
+            Welcome to Fanta.club!
+          </div>
+          <div style="padding: 20px; font-size: 16px; color: #333;">
+            <p>Hello!</p>
+            <p>Thank you for joining Fanta.club! To complete your registration, please verify your account by clicking the button below:</p>
+            <p style="text-align: center; margin: 20px 0;">
+              <a href="${verificationLink}" style="color: #fff; background-color: #f08c00; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Your Account</a>
+            </p>
+            <p>If you did not sign up for this account, you can safely ignore this email.</p>
+          </div>
+          <div style="background-color: #f08c00; color: #fff; padding: 10px; text-align: center; font-size: 14px;">
+            &copy; ${new Date().getFullYear()} Fanta.club. All rights reserved.
+          </div>
+        </div>
+      `
     };
+    
 
     try {
       await axios.post('http://localhost:3535/send/email', emailBody);

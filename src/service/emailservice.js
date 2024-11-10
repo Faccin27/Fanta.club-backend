@@ -9,13 +9,14 @@ class EmailService {
         );
     }
 
-    async sendEmail(to, subject, text) {
+    async sendEmail(to, subject, text, html = null) {
         try {
             const info = await this.smtp.sendMail({
-                from:process.env.EMAIL_USER,
+                from: process.env.EMAIL_USER,
                 to,
                 subject,
-                text
+                text,
+                html
             });
             console.log("Email enviado: %s", info.messageId);
             return { success: true, messageId: info.messageId };
