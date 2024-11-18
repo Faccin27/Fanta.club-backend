@@ -131,6 +131,35 @@ class userController {
   }
   
 
+
+
+
+async updateRole(req, reply) {
+  console.log("recebido");
+  try {
+    const userId = Number(req.params.id);
+    const { newRole } = req.body;
+
+    if (!newRole) {
+      return reply.status(400).send({ message: "Role is required" });
+    }
+
+    const currentUser = await UserDAO.getUserById(userId);
+    if (!currentUser) {
+      return reply.status(404).send({ message: "User not found" });
+    }
+
+    const updatedUser = await UserDAO.updateUserRole(userId, { role: newRole });
+
+    reply.send(updatedUser);
+  } catch (err) {
+    console.error(err);
+    reply.status(500).send({ error: "Internal Server Error" });
+  }
+}
+
+
+
   async getLoggedUserById(req, reply) {
     const usuarioLogado = await UserDAO.getUserById(req.user.id);
     reply.send(usuarioLogado);
@@ -162,6 +191,7 @@ class userController {
   }
 
 async createUser(req, reply) {
+  console.log("creating user")
   try {
     const { email, name, password, ...userData } = req.body;
 
