@@ -1,7 +1,8 @@
 const UserDAO = require("../models/DAO/userDAO");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
-const axios = require('axios')
+const axios = require('axios');
+const userDAO = require("../models/DAO/userDAO");
 
 class userController {
 
@@ -131,6 +132,32 @@ class userController {
   }
   
 
+  async updateName(req, reply) {
+    console.log("recebido")
+  try {
+      const userId = Number(req.params.id);
+      const { newName } = req.body;
+      
+      const currentUser = await UserDAO.getUserById(userId);
+      if (!currentUser) {
+          return reply.status(404).send({ message: "User not found" });
+      }
+
+      const userData = {
+          ...req.body,
+          name: await bcrypt.hash(newName, 10)
+      };
+
+
+      const updatedUser = await UserDAO.updateUserName(userId, userData);
+
+      reply.send(updatedUser);
+      
+  } catch (err) {
+      console.error(err);
+      reply.status(500).send({ error: "Internal Server Error" });
+  }
+}
 
 
 
@@ -437,7 +464,36 @@ async updateUser(req, reply) {
       reply.status(500).send({ error: "Internal Server Error" });
     }
   }
-}
+
+  async findUserByName(req, reply) {
+    try{
+      const {userName} = req.query;
+      if (!userName) {
+        reply.status(400).send({ error: 'Nome do usuário é obrigatório.' });
+        return;
+      }
+      const findedUserByNmae = await userDAO.getUserByName(userName);
+      reply.status(200).send(findedUserByNmae);
+      
+    } catch (err){
+      throw new Error(`Unxpected error, we can't search the user, try later, check the error: ${err}`);
+    };
+  };
+
+  async findUserByRole(req, reply) {
+    try{
+      const {userRole} = req.query;
+      if(!userRole){
+        reply.status(400).send({server:"You need to insert the user role!"});
+      };
+      const findeduserRole = await userDAO.getUserByRole(userRole);
+      reply.status(200).send(findeduserRole);
+    }catch (err){
+      throw new Error(`Unxpected error, we can't search the user, try later, check the erro: ${err}`);
+    };
+  };
+
+};
 
 
 

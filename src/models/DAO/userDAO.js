@@ -15,8 +15,15 @@ class UserDAO {
   }
 
   async getUserOrder(id){
-    return await order.findMany({where: {userId: parseInt(id) }})
+    return await order.findFirst({where: {userId: parseInt(id) }})
   }
+  
+  async getUserByName(name) {
+    return await prisma.findFirst({ where: { name } });
+  }
+  async getUserByRole(role) {
+    return await prisma.findFirst({where: {role}});
+  };
 
   async getUserByEmail(email) {
     return await prisma.findFirst({ where: { email: email } })
@@ -27,6 +34,13 @@ class UserDAO {
   }
 
   async updateUser(id, data) {
+    return await prisma.update({ where: { id: parseInt(id) }, data });
+  }
+
+  async updateUserRole(id,data) {
+    return await prisma.update({ where: { id: parseInt(id) }, data });
+  }
+  async updateUserName(id,data) {
     return await prisma.update({ where: { id: parseInt(id) }, data });
   }
 

@@ -24,6 +24,7 @@ model User {
   purchases      Purchase[]
   products       Product[] @relation("UserProducts") // Novo relacionamento com produtos
   coupons        Coupon[]  @relation("UserCoupons") // Relação para os cupons criados
+  Announcements Announcements[] @relation("UserAnuncios") // Relação para os anuncios criados
 
 
   @@map("users")
@@ -67,7 +68,27 @@ model Coupon {
   @@map("coupons")
 }
 
+model Announcements {
+  id              Int       @id @default(autoincrement())
+  title          String    
+  content        String
+  type           AnumType
+  createdAt     DateTime  @default(now())
+  createdBy     User      @relation("UserAnuncios", fields: [createdById], references: [id])
+  createdById   Int
+  createdByPhoto String?
+  createdByName String?
 
+  @@map("announcements")
+}
+
+
+
+enum AnumType {
+  Announcements
+  Updates
+  Configs
+}
 
 enum Role {
   User
