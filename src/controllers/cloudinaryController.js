@@ -14,25 +14,23 @@ cloudinary.config({
 class CloudinaryController {
   // Upload de imagem
   async uploadImage(req, reply) {
-    console.log(req)
     try {
       const data = await req.file();
-      
       if (!data) {
         return reply.status(400).send({ message: 'No file uploaded' });
       }
-
-      // Salvar o arquivo temporariamente
-      const tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${data.filename}`);
-      await data.save(tempFilePath);
-
-      const result = await cloudinary.uploader.upload(tempFilePath, {
-        folder: process.env.CLOUDINARY_FOLDER,
-      });
-
-      // Remover arquivo local após upload
-      await fs.promises.unlink(tempFilePath);
-
+  
+      // Read file as buffer
+      const fileBuffer = await data.toBuffer();
+  
+      const result = await cloudinary.uploader.upload(
+        `data:${data.mimetype};base64,${fileBuffer.toString('base64')}`, 
+        {
+          folder: process.env.CLOUDINARY_FOLDER,
+          filename: data.filename
+        }
+      );
+  
       reply.send({
         message: 'Image uploaded successfully!',
         url: result.secure_url,

@@ -9,7 +9,6 @@ require('dotenv').config();
 
 fastify.register(cookie);
 fastify.register(fastifyMultipart, {
-  attachFieldsToBody: true,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limite
   }
