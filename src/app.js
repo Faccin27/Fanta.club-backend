@@ -3,10 +3,17 @@ const cors = require('@fastify/cors');
 const router = require('./routes/router');
 const jwt = require('@fastify/jwt');
 const cookie = require('@fastify/cookie');
+const fastifyMultipart = require('@fastify/multipart');
 require('dotenv').config();
 
 
 fastify.register(cookie);
+fastify.register(fastifyMultipart, {
+  attachFieldsToBody: true,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limite
+  }
+});
 
 // CORS
 fastify.register(cors, {
