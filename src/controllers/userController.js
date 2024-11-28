@@ -43,7 +43,7 @@ class userController {
   }
   
 
-  async getUserOrder(req, reply) {
+async getUserOrder(req, reply) {
     console.log("Get user Order init")
     try {
       const id = Number(req.params.id);

@@ -15,7 +15,7 @@ class UserDAO {
   }
 
   async getUserOrder(id){
-    return await order.findFirst({where: {userId: parseInt(id) }})
+    return await order.findMany({ where: { userId: parseInt(id) } });
   }
   
   async getUserByName(name) {
