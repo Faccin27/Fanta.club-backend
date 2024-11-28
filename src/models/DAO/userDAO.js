@@ -17,6 +17,10 @@ class UserDAO {
   async getUserOrder(id){
     return await order.findMany({ where: { userId: parseInt(id) } });
   }
+
+  async updateUserPhoto(id, imageUrl){
+    return await prisma.update({where: {id: parseInt(id)}, data: {photo: imageUrl}})
+  }
   
   async getUserByName(name) {
     return await prisma.findFirst({ where: { name } });

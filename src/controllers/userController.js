@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
 const axios = require('axios');
 const userDAO = require("../models/DAO/userDAO");
+const FormData = require("form-data")
 
 class userController {
 
@@ -131,6 +132,59 @@ async getUserOrder(req, reply) {
     }
   }
   
+  async updateUserImage(req, reply) {
+    console.log("Iniciando troca de foto de usuario");
+    
+    try {
+        const userId = Number(req.params.id);
+        
+        // Use Fastify's multipart handling
+        const data = await req.file();
+        
+        if (!userId || isNaN(userId)) {
+            return reply.status(400).send({ message: "ID do usuário é obrigatório e deve ser um número válido." });
+        }
+
+        if (!data) {
+            return reply.status(400).send({ message: "Nova imagem é obrigatória." });
+        }
+
+        const currentUser = await UserDAO.getUserById(userId);
+        if (!currentUser) {
+            return reply.status(404).send({ message: "Usuário não encontrado." });
+        }
+
+        // Create a FormData instance for axios
+        const formData = new FormData();
+        formData.append('image', data.file, {
+            filename: data.filename,
+            contentType: data.mimetype
+        });
+
+        const response = await axios.post("http://localhost:3535/assets/upload", formData, {
+            headers: {
+                ...formData.getHeaders(),
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        console.log(response.data)
+        console.log("URL:", response.data.url);
+        const imageUrl = response.data.url;
+
+        await UserDAO.updateUserPhoto(userId, imageUrl);
+
+        return reply.status(200).send({ message: "Imagem atualizada com sucesso!", url: imageUrl });
+    } catch (error) {
+        console.error("Erro detalhado ao fazer upload da imagem:", error);
+        
+        return reply.status(500).send({ 
+            message: "Erro ao atualizar a imagem do usuário.", 
+            error: error.message 
+        });
+    }
+}
+
 
   async updateName(req, reply) {
     console.log("recebido")
