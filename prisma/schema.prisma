@@ -8,81 +8,79 @@ generator client {
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   name           String
   password       String
-  email          String    @unique
+  email          String          @unique
   photo          String?
   registeredDate DateTime
   expiryDate     DateTime?
-  isActive       Boolean   @default(true)
-  verified       Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  role           Role      @default(User)
-
+  isActive       Boolean         @default(true)
+  verified       Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  description    String?         @unique
+  updatedAt      DateTime        @updatedAt
+  role           Role            @default(User)
+  updating       Boolean?        @default(false)
   purchases      Purchase[]
-  products       Product[] @relation("UserProducts") // Novo relacionamento com produtos
-  coupons        Coupon[]  @relation("UserCoupons") // Relação para os cupons criados
-  Announcements Announcements[] @relation("UserAnuncios") // Relação para os anuncios criados
-
+  products       Product[]       @relation("UserProducts") // Novo relacionamento com produtos
+  coupons        Coupon[]        @relation("UserCoupons") // Relação para os cupons criados
+  Announcements  Announcements[] @relation("UserAnuncios") // Relação para os anuncios criados
 
   @@map("users")
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
-  name        ProductName
-  price       Float
-  expiration  Expiration
-  createdAt   DateTime  @default(now())
-  purchases   Purchase[]
-  user        User      @relation(fields: [userId], references: [id], name: "UserProducts") 
-  userId      Int       
+  id         Int         @id @default(autoincrement())
+  name       ProductName
+  price      Float
+  expiration Expiration
+  createdAt  DateTime    @default(now())  @map("createdAt")
+  purchases  Purchase[]
+  user       User        @relation(fields: [userId], references: [id], name: "UserProducts")
+  userId     Int
 
   @@map("products")
 }
 
 model Purchase {
-  id              Int       @id @default(autoincrement())
-  user            User      @relation(fields: [userId], references: [id])
-  userId          Int
-  product         Product   @relation(fields: [productId], references: [id])
-  productId       Int
-  purchaseDate    DateTime  @default(now())
-  paymentMethod   String
-  receiptId       String
+  id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        Int
+  product       Product  @relation(fields: [productId], references: [id])
+  productId     Int
+  purchaseDate  DateTime @default(now())
+  paymentMethod String
+  receiptId     String
 
   @@map("purchases")
 }
 
 model Coupon {
-  id            Int       @id @default(autoincrement())
-  name          String    @unique
-  discount      Float
-  createdAt     DateTime  @default(now())
-  expiryDate    DateTime
-  createdBy     User      @relation("UserCoupons", fields: [createdById], references: [id])
-  createdById   Int
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  discount    Float
+  createdAt   DateTime @default(now())
+  expiryDate  DateTime
+  createdBy   User     @relation("UserCoupons", fields: [createdById], references: [id])
+  createdById Int
 
   @@map("coupons")
 }
 
 model Announcements {
-  id              Int       @id @default(autoincrement())
-  title          String    
+  id             Int      @id @default(autoincrement())
+  title          String
   content        String
   type           AnumType
-  createdAt     DateTime  @default(now())
-  createdBy     User      @relation("UserAnuncios", fields: [createdById], references: [id])
-  createdById   Int
+  createdAt      DateTime @default(now())
+  createdBy      User     @relation("UserAnuncios", fields: [createdById], references: [id])
+  createdById    Int
   createdByPhoto String?
-  createdByName String?
+  createdByName  String?
 
-  @@map("announcements")
+  @@map("anuncios")
 }
-
-
 
 enum AnumType {
   Announcements

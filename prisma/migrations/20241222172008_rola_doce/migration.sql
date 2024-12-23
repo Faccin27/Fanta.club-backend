@@ -10,10 +10,13 @@ CREATE TABLE `users` (
     `isActive` BOOLEAN NOT NULL DEFAULT true,
     `verified` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `description` VARCHAR(191) NULL,
     `updatedAt` DATETIME(3) NOT NULL,
     `role` ENUM('User', 'Premium', 'Moderator', 'FANTA') NOT NULL DEFAULT 'User',
+    `updating` BOOLEAN NULL DEFAULT false,
 
     UNIQUE INDEX `users_email_key`(`email`),
+    UNIQUE INDEX `users_description_key`(`description`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

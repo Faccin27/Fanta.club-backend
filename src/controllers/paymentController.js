@@ -9,6 +9,65 @@ const reqGNAlready = GNRequest({
   sandbox: process.env.NODE_ENV !== 'production'
 });
 
+const payMantNotification = async (req, reply) => {
+  try{
+    console.log("Iniciando a conexão com a efí!");
+
+    console.log(req.headers); 
+    console.log(req.body)
+    const reqGN = await reqGNAlready;
+
+    if(!reqGN){
+      console.log("Conexão perdida!");
+       reply.status(417).send({server:"We lost the connection with the Efí API, please try again later!"});
+    };
+
+    const {chave} = req.params
+
+    const chaveASerUsada = String(chave);
+    
+    if(!chaveASerUsada){
+      console.log("Usuário não inserir a chave!");
+       reply.status(404).send({server:"You need to insert the pix key in the url!"});
+    };
+    
+    console.log(`Procurando chave pix: ${chaveASerUsada}`);
+    
+    const {webhookUrl} = req.body;
+
+    
+    String(webhookUrl);
+    
+    if(!webhookUrl){
+      console.error("Faltou a webhookUrl");
+       reply.status(400).send({server:"You need to input the webhookUrl in the body!"});
+    };
+    console.log(`WEBHOOKRUL: ${webhookUrl}`);
+    const response = await reqGN.put(`/v2/webhook/${chaveASerUsada}`, webhookUrl);
+    
+    if(!response){
+      console.error("Não conseguimos pegar a resposta da Efí!");
+       reply.status(401).send({server:"We can't get a valid response!"});
+    };
+
+     return reply.status(204).send(response);
+
+  }catch (error) {
+    console.error('Erro ao listar cobranças:', {
+      message: error.message,
+      response: {
+        status: error.response?.status,
+        data: error.response?.data
+      }
+    });
+
+     reply.status(error.response?.status || 500).send({
+      error: 'Erro ao listar cobranças',
+      details: error.response?.data?.mensagem || error.message
+    });
+  };
+};
+
 const listCharges = async (req, reply) => {
   try {
     console.log('Iniciando listagem de cobranças');
@@ -207,5 +266,6 @@ module.exports = {
   generateQRCode,
   listCharges,
   waitForPayment,  // [SIMULAÇÃO] Remover em produção
-  webhook
+  webhook,
+  payMantNotification
 };

@@ -1,6 +1,5 @@
 const prisma = require('../user');
 const order = require('../order')
-
 class UserDAO {
   async getAllUsers() {
     return await prisma.findMany();
@@ -15,13 +14,8 @@ class UserDAO {
   }
 
   async getUserOrder(id){
-    return await order.findMany({ where: { userId: parseInt(id) } });
+    return await order.findMany({where: {userId: parseInt(id) }})
   }
-
-  async updateUserPhoto(id, imageUrl){
-    return await prisma.update({where: {id: parseInt(id)}, data: {photo: imageUrl}})
-  }
-  
   async getUserByName(name) {
     return await prisma.findFirst({ where: { name } });
   }
@@ -48,8 +42,17 @@ class UserDAO {
     return await prisma.update({ where: { id: parseInt(id) }, data });
   }
 
+
+
   async deleteUser(id) {
     return await prisma.delete({ where: { id: parseInt(id) } });
+  }
+
+  async updateUserUp(id, data){
+    return await prisma.update({ where: { id: parseInt(id) }, data });
+  }
+  async updateUserDesc(id, data){
+    return await prisma.update({ where: { id: parseInt(id) }, data });
   }
   
 }

@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
 const axios = require('axios');
 const userDAO = require("../models/DAO/userDAO");
-const FormData = require("form-data")
 
 class userController {
 
@@ -44,7 +43,7 @@ class userController {
   }
   
 
-async getUserOrder(req, reply) {
+  async getUserOrder(req, reply) {
     console.log("Get user Order init")
     try {
       const id = Number(req.params.id);
@@ -85,13 +84,14 @@ async getUserOrder(req, reply) {
           expirationDate: item.expiration === 'LIFETIME' ? 'Nunca expira' : expirationDate.toISOString()
         };
       });
+      reply.status(200).send(order);
   
       console.log(orderWithExpiration)
       
-      reply.send(orderWithExpiration)
+      reply.status(200).send(orderWithExpiration)
     } catch(err) {
       console.log(err)
-      reply.status(500).send({ error: "Internal Server Error" });
+      reply.status(500).send(err);
     }
   }
   
@@ -132,59 +132,6 @@ async getUserOrder(req, reply) {
     }
   }
   
-  async updateUserImage(req, reply) {
-    console.log("Iniciando troca de foto de usuario");
-    
-    try {
-        const userId = Number(req.params.id);
-        
-        // Use Fastify's multipart handling
-        const data = await req.file();
-        
-        if (!userId || isNaN(userId)) {
-            return reply.status(400).send({ message: "ID do usuário é obrigatório e deve ser um número válido." });
-        }
-
-        if (!data) {
-            return reply.status(400).send({ message: "Nova imagem é obrigatória." });
-        }
-
-        const currentUser = await UserDAO.getUserById(userId);
-        if (!currentUser) {
-            return reply.status(404).send({ message: "Usuário não encontrado." });
-        }
-
-        // Create a FormData instance for axios
-        const formData = new FormData();
-        formData.append('image', data.file, {
-            filename: data.filename,
-            contentType: data.mimetype
-        });
-
-        const response = await axios.post("http://localhost:3535/assets/upload", formData, {
-            headers: {
-                ...formData.getHeaders(),
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-
-        console.log(response.data)
-        console.log("URL:", response.data.url);
-        const imageUrl = response.data.url;
-
-        await UserDAO.updateUserPhoto(userId, imageUrl);
-
-        return reply.status(200).send({ message: "Imagem atualizada com sucesso!", url: imageUrl });
-    } catch (error) {
-        console.error("Erro detalhado ao fazer upload da imagem:", error);
-        
-        return reply.status(500).send({ 
-            message: "Erro ao atualizar a imagem do usuário.", 
-            error: error.message 
-        });
-    }
-}
-
 
   async updateName(req, reply) {
     console.log("recebido")
@@ -406,6 +353,8 @@ async verifyUser(req, reply) {
   }
 }
 
+
+
 async updateUser(req, reply) {
   console.log("recebido")
   try {
@@ -546,6 +495,55 @@ async updateUser(req, reply) {
       throw new Error(`Unxpected error, we can't search the user, try later, check the erro: ${err}`);
     };
   };
+
+  async updateUp(req, reply) {
+    console.log("recebido");
+    try {
+      const userId = Number(req.params.id);
+      const { updating } = req.body; // Corrigido para acessar diretamente "updating"
+  
+      if (typeof updating !== "boolean") { // Valida se o valor é um booleano
+        return reply.status(400).send({ message: "True or False is required" });
+      }
+  
+      const currentUser = await UserDAO.getUserById(userId);
+      if (!currentUser) {
+        return reply.status(404).send({ message: "User not found" });
+      }
+  
+      const updatedUser = await UserDAO.updateUserUp(userId, { updating });
+  
+      reply.send(updatedUser);
+    } catch (err) {
+      console.error(err);
+      reply.status(500).send({ error: "Internal Server Error" });
+    }
+};
+
+
+async updateDesc(req, reply) {
+  console.log("recebido");
+  try {
+    const userId = Number(req.params.id);
+    const { description } = req.body; 
+
+    if (typeof description !== "string") { 
+      return reply.status(400).send({ message: "A message is required" });
+    }
+
+    const currentUser = await UserDAO.getUserById(userId);
+    if (!currentUser) {
+      return reply.status(404).send({ message: "User not found" });
+    }
+
+    const updatedUser = await UserDAO.updateUserDesc(userId, { description });
+
+    reply.send(updatedUser);
+  } catch (err) {
+    console.error(err);
+    reply.status(500).send({ error: "Internal Server Error" });
+  }
+};
 
 };
 

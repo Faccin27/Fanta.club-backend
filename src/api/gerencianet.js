@@ -4,7 +4,7 @@ const path = require('path');
 const https = require('https');
 
 const cert = fs.readFileSync(
-  path.resolve(__dirname, `../../certs/${process.env.GN_CERT}`)
+  path.resolve(__dirname, `../../certs/producao-625311-fanta.club.p12`)
 );
 
 const agent = new https.Agent({
@@ -48,7 +48,7 @@ const GNRequest = async (credentials) => {
     httpsAgent: agent,
     headers: {
       'Content-Type': 'application/json'
-    }
+    },
   });
 
   // "middleware" para verificar e renovar o token a cada requisição

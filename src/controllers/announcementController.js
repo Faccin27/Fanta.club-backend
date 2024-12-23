@@ -76,8 +76,9 @@ class AnunciosController {
 
     async putAnuncio(req, reply) {
         const id = Number(req.params.id);
+        const data = req.body;
         try{
-            const updatedAnuncio = await AnunciosDAO.updateAnuncios(id);
+            const updatedAnuncio = await AnunciosDAO.updateAnuncios(id, data);
             reply.status(202).send(updatedAnuncio);
         } catch (err) {
             reply.status(500).send({ server: `We catch an unxpected error during the POST Method: ${err}` });
